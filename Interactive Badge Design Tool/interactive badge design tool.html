@@ -1,0 +1,387 @@
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script>
+    var x = document.createElement("INPUT");
+    x.setAttribute("type", "text");
+    document.body.querySelector(".data").appendChild(x);
+  </script>
+  <style>
+    body {
+      font-size: 20px;
+    }
+
+    #outer-dropzone {
+      height: 1000px;
+    }
+
+    #inner-dropzone {
+      height: 950px;
+    }
+
+    .dropzone {
+      background-color: #bfe4ff;
+      border: dashed 4px transparent;
+      border-radius: 4px;
+      margin: 10px auto 30px;
+      padding: 10px;
+      width: 80%;
+      transition: background-color 0.3s;
+    }
+
+    .drop-active {
+      border-color: #aaa;
+    }
+
+    .drop-target {
+      background-color: #29e;
+      border-color: #fff;
+      border-style: solid;
+    }
+
+    .drag-drop {
+      display: inline-block;
+      touch-action: none;
+      -webkit-transform: translate(0px, 0px);
+      transform: translate(0px, 0px);
+      transition: background-color 0.3s;
+    }
+
+    .drag-drop.can-drop {
+      color: #000;
+      background-color: transparent;
+    }
+
+    input {
+      border: none;
+      border-bottom: 1px solid gray;
+    }
+
+    textarea {
+      background-color: transparent;
+      text-align: center;
+      border: solid 1px #c0c0c0;
+      resize: none;
+      box-sizing: border-box;
+      width: 100px;
+    }
+
+    .taContainer {
+      position: absolute;
+      display: inline-block;
+    }
+
+    .delButton {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 20px;
+      height: 20px;
+      background-color: #ccc;
+      border: none;
+      outline: none;
+    }
+
+    .no-border-input {
+      border: none;
+      outline: none;
+      background: transparent;
+    }
+
+    .resize-drag {
+      width: 500px;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 1rem;
+      background-color: transparent;
+      color: black;
+      font-size: 20px;
+      font-family: sans-serif;
+
+      touch-action: none;
+
+      /* This makes things *much* easier */
+      box-sizing: border-box;
+    }
+
+    .itemstodrop {
+      touch-action: none;
+      user-select: none;
+    }
+
+    .tap-target {
+      cursor: pointer;
+      touch-action: none;
+      user-select: none;
+
+      transition: all 0.3s;
+    }
+
+    .tap-target.switch-bg {
+      background-color: transparent;
+    }
+
+    .grid-snap {
+      touch-action: none;
+    }
+
+    .steps {
+      position: absolute;
+    }
+
+    .draggable {
+      cursor: -webkit-grab;
+      cursor: -moz-grab;
+      cursor: grab;
+    }
+
+    .draggable.getting--dragged {
+      cursor: -webkit-grabbing;
+      cursor: -moz-grabbing;
+      cursor: grabbing;
+    }
+
+    .draggable {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .droparea {
+      display: flex;
+    }
+  </style>
+</head>
+
+<script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+
+<body>
+  <button class="add" style="font-size: 20px;">Add</button>
+  <!--<button id="coor-button" style="font-size: 20px;" onclick="getCoor()">Save</button>-->
+  <button id="coor-button" style="font-size: 20px;" onclick="saveCoordinates()">Save</button>
+  <div class="items">
+    <input type="hidden" value="0" id="total_chq">
+
+    <div id="inner-dropzone" class="dropzone">
+      <div id="new_chq"></div>
+    </div>
+    <!--</div>-->
+
+  </div>
+</body>
+
+<script>
+  $('.add').on('click', add);
+
+  function add() {
+    var new_chq_no = parseInt($('#total_chq').val()) + 1;
+    var new_input = "<div id='itemstodrop' name='content_" + new_chq_no + "' class='drag-drop itemstodrop'><textarea id='yes-drop_" + new_chq_no + "' class='resize-drag tap-target' type='text' style='font-size: 20px; color: white;'></textarea><button class='delButton'>x</button></div>";
+
+    $('#new_chq').append(new_input);
+
+    $('#total_chq').val(new_chq_no);
+
+    // Add click event listener to delete button
+    $('.delButton').last().on('click', function () {
+      $(this).closest('.drag-drop').remove();
+      $('#total_chq').val(parseInt($('#total_chq').val()) - 1);
+    });
+  }
+</script>
+
+
+<script>
+  var startPos = null;
+  //define the initial position for each rig tile.
+  function dragMoveListener(event) {
+
+    var target = event.target
+    // keep the dragged position in the data-x/data-y attributes
+    var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
+    var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+
+    // translate the element
+    target.style.webkitTransform =
+      target.style.transform =
+      'translate(' + x + 'px, ' + y + 'px)'
+
+    // update the posiion attributes
+    target.setAttribute('data-x', x)
+    target.setAttribute('data-y', y)
+  }
+
+  // this function is used later in the resizing and gesture demos
+  window.dragMoveListener = dragMoveListener
+  interact('.dropzone').dropzone({
+    // only accept elements matching this CSS selector
+    accept: '#itemstodrop', //change this
+    // the item should go 100% inside the draggable area...
+    overlap: 0.9999999,
+    ondropactivate: function (event) {
+      // add active dropzone feedback
+      event.target.classList.add('drop-active')
+    },
+    ondragenter: function (event) {
+
+      //when item enters the draggable area
+      var draggableElement = event.relatedTarget
+      var dropzoneElement = event.target
+
+
+      console.log(draggableElement.firstChild.nodeValue);
+      // feedback the possibility of a drop
+      dropzoneElement.classList.add('drop-target')
+      draggableElement.classList.add('can-drop')
+
+    },
+    ondragleave: function (event) {
+
+
+      console.log(startPos)
+      event.draggable.draggable({
+        snap: {
+          targets: [startPos]
+        }
+      });
+
+      //when item leaves the draggable area
+      // remove the drop feedback style
+      event.target.classList.remove('drop-target')
+      event.relatedTarget.classList.remove('can-drop')
+
+    },
+    /*ondrop: function(event) {
+  
+  //when the item is droppd in the draggable area
+  event.relatedTarget.textContent = 'Dropped'
+    },*/
+    ondropdeactivate: function (event) {
+      // remove active dropzone feedback
+      event.target.classList.remove('drop-active')
+      event.target.classList.remove('drop-target')
+    }
+  })
+
+  interact('.drag-drop')
+    .draggable({
+      inertia: true,
+      modifiers: [
+        interact.modifiers.restrictRect({
+          restriction: '.dropzone', //change this
+          endOnly: true
+        })
+      ],
+      autoScroll: true,
+      // dragMoveListener from the dragging demo above
+      listeners: {
+        move: dragMoveListener
+      }
+    })
+
+  interact('.resize-drag')
+    .resizable({
+      // resize from all edges and corners
+      edges: { left: true, right: true, bottom: true, top: true },
+
+      listeners: {
+        move(event) {
+          var target = event.target
+          var x = (parseFloat(target.getAttribute('data-x')) || 0)
+          var y = (parseFloat(target.getAttribute('data-y')) || 0)
+
+          // update the element's style
+          target.style.width = event.rect.width + 'px'
+          target.style.height = event.rect.height + 'px'
+
+          // translate when resizing from top or left edges
+          x += event.deltaRect.left
+          y += event.deltaRect.top
+
+          /*target.style.transform = 'translate(' + x + 'px,' + y + 'px)'
+ 
+          target.setAttribute('data-x', x)
+          target.setAttribute('data-y', y)
+          target.textContent = Math.round(event.rect.width) + '\u00D7' + Math.round(event.rect.height)*/
+        }
+
+      },
+      modifiers: [
+        // keep the edges inside the parent
+        interact.modifiers.restrictEdges({
+          outer: 'parent'
+        }),
+
+        // minimum size
+        interact.modifiers.restrictSize({
+          min: { width: 100, height: 50 }
+        })
+      ],
+
+      inertia: true
+    })
+  interact('.tap-target')
+    .on('tap', function (event) {
+      var colors = ['orange', 'tomato', 'slateblue', 'violet', 'mediumseagreen', 'transparent'];
+      var currentColor = event.currentTarget.style.backgroundColor;
+      var index = colors.indexOf(currentColor);
+      if (index === colors.length - 1) {
+        index = 0;
+      }
+      else {
+        index++;
+      }
+      event.currentTarget.style.backgroundColor = colors[index];
+    })
+
+        //var element = document.getElementById('grid-snap')
+
+</script>
+
+<script>
+  function saveCoordinates() {
+    const coor = [];
+    // find elements 
+    const coorElements = document.querySelectorAll('.drag-drop');
+    let emptyanot = false;
+
+    // loop through each element 
+    coorElements.forEach((element) => {
+      // get x and y 
+      const x = element.getAttribute('data-x');
+      const y = element.getAttribute('data-y');
+      const eName = element.getAttribute('name');
+
+      const txtarea = element.querySelector('textarea');
+      if (txtarea && txtarea.value.trim() === '') {
+        emptyanot = true;
+      }
+
+      // append 
+      const nameWithCoordinates = {
+        [eName]: [{ "X": x, "Y": y }]
+      };
+      //const nameWithCoordinates = `{"${element.getAttribute('name')}":[{"X":"${x}","Y":"${y}"}]}`; 
+      coor.push(nameWithCoordinates);
+    });
+
+    if (emptyanot) {
+      alert('Text area is empty.');
+      return;
+    }
+
+    // encode to JSON 
+    const json = JSON.stringify(coor);
+
+    // generate a unique file name based on the current date and time 
+    const now = new Date().toISOString().replace(/[:.]/g, '-');
+    const fileName = `coordinate-${now}.json`;
+
+    // create a file and prompt the user to save it 
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } 
+</script>
