@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+   .form-designer {
+      display: flex;
+    }
+
+    .form-elements {
+      margin-right: 20px;
+    }
+
+    .form-element {
+      margin-bottom: 10px;
+      padding: 5px;
+      background-color: #eee;
+      cursor: move;
+    }
+
+    .drop-region {
+      min-height: 1000px;
+      border: 2px dashed #ccc;
+      width: 1000px;
+      margin-left: 60px;
+    }
+    .collapsible {
+      cursor: pointer;
+      border: none;
+      text-align: left;
+      width: 100%;
+      outline: none;
+      text-align: center;
+    }
+
+    .active,
+    .form-element:hover {
+      background-color: #555;
+    }
+
+    .content {
+      padding: 0 18px;
+      display: none;
+      overflow: hidden;
+    }
+
+    .content input[type="text"] {
+      width: 100%;
+      padding: 5px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+    .small-button {
+      position: absolute;
+      margin-left: 100px;
+      /* Adjust top and other styles as per your requirements */
+    }
+    .delButton {
+      position: absolute;
+      background-color: #ccc;
+      border: none;
+      outline: none;
+      padding: 5px;
+    }
+    .prevClass {
+      max-width: 80%;
+      height: auto;
+    }
+
+    .badge_class {
+        width: 200px;
+        height: 200px;
+    }
+
+
+  </style>
+</head>
+<script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+
+<body>
+<div class="form-designer">
+  <div class="form-elements">
+    <div id="text-field" class="form-element" draggable="true">Text</div>
+    <div id="image" class="form-element" draggable="true">Image</div>
+    <div><button onclick="saveCoordinates()">Save</button></div>
+  </div>
+  <div class="form-preview">
+    <div id="drop-region" class="drop-region"></div>
+  </div>
+</div>
+
+<script>
+  let elementCounter = 1;
+  let imgCounter =  1;// Initialize a counter for generating unique IDs
+
+  // Drag start event handler
+  function dragStart(event) {
+    event.dataTransfer.setData("text/plain", event.target.id);
+  }
+
+  // Drop event handler
+  function drop(event) {
+    event.preventDefault();
+    const elementId = event.dataTransfer.getData("text/plain");
+    const element = document.getElementById(elementId).cloneNode(true);
+
+    if (element.id === "text-field") {
+      const newElement = document.createElement("div");
+      newElement.classList.add("badge_class");
+      const elementId = "element_" + elementCounter; // Generate a unique ID
+      elementCounter++; // Increment the counter for the next element
+
+      newElement.id = elementId; // Set the generated ID to the new element
+
+      // Rest of the code for creating the new element...
+      const newText = document.createElement("button");
+      newText.type = "button";
+      newText.classList.add("collapsible");
+      const newPar = document.createElement("p");
+      newPar.id = "p1_" + elementId; // Update the paragraph ID
+      newPar.classList.add("par_class");
+      newPar.textContent = "Hello";
+      newText.appendChild(newPar);
+      
+      const delbut = document.createElement("button");
+      delbut.classList.add("delButton");
+      delbut.textContent = "x";
+      delbut.addEventListener("click", function() {
+        deleteElement(elementId);
+      });
+      newElement.appendChild(delbut);
+
+      newElement.appendChild(newText);
+
+      const newCon = document.createElement("div");
+      newCon.classList.add("content");
+      const conName = document.createElement("label");
+      conName.textContent = "Content: ";
+      newCon.appendChild(conName);
+
+      const inputName = document.createElement("input");
+      inputName.type = "text";
+      inputName.name = "text_content";
+      inputName.id = "input_name_" + elementId; // Update the input field ID
+      inputName.oninput = function() {
+        updateText(elementId); // Call updateText() with the corresponding elementId
+      };
+      newCon.appendChild(inputName);
+
+      const br = document.createElement("br");
+      newCon.appendChild(br);
+
+      const conType = document.createElement("label");
+      conType.textContent = "Label: ";
+      newCon.appendChild(conType);
+
+      const inputType = document.createElement("input");
+      inputType.type = "text";
+      inputType.name = "text_label";
+      inputType.id = "input_type";
+      newCon.appendChild(inputType);
+
+      newElement.appendChild(newCon);
+
+      //newElement.appendChild(delbut);
+
+      // Attach event listeners and perform necessary actions...
+      newText.addEventListener("click", function() {
+        this.classList.toggle("active");
+        var content = this.nextElementSibling;
+        if (content.style.display === "block") {
+          content.style.display = "none";
+        } else {
+          content.style.display = "block";
+        }
+      });
+
+      element.replaceWith(newElement);
+      event.target.appendChild(newElement);
+
+      // Rest of the code...
+    } 
+    else if (element.id === "image") {
+      const newImg = document.createElement("div");
+      newImg.classList.add("badge_class");
+      const imgId = "img_" + imgCounter; // Generate a unique ID
+      imgCounter++; // Increment the counter for the next element
+
+      newImg.id = imgId; // Set the generated ID to the new element
+
+      // Rest of the code for creating the new element...
+      const newPrev = document.createElement("button");
+      newPrev.type = "button";
+      newPrev.classList.add("collapsible");
+      const imgPrev = document.createElement("img");
+      imgPrev.id = "img_" + imgId; // Update the image ID
+      imgPrev.classList.add("prevClass");
+      imgPrev.alt = "Preview";
+      imgPrev.src = "";
+      newPrev.appendChild(imgPrev);
+
+      const imgdelbut = document.createElement("button");
+      imgdelbut.id = "delButton_" + imgId;
+      imgdelbut.classList.add("delButton");
+      imgdelbut.textContent = "x";
+      imgdelbut.addEventListener("click", function() {
+        deleteImg(imgId);
+      });
+      newImg.appendChild(imgdelbut);
+
+      newImg.appendChild(newPrev);
+
+      const imgCon = document.createElement("div");
+      imgCon.classList.add("content");
+      const imglbl = document.createElement("label");
+      imglbl.textContent = "Image: ";
+      imgCon.appendChild(imglbl);
+
+      const inputImg = document.createElement("input");
+      inputImg.type = "file";
+      inputImg.name = "image_content";
+      inputImg.id = "input_img_" + imgId; // Update the input field ID
+      inputImg.onchange = function(event) {
+        displayImage(event, imgId); // Call displayImage() with the corresponding elementId
+      };
+      imgCon.appendChild(inputImg);
+
+      const imgbr = document.createElement("br");
+      imgCon.appendChild(imgbr);
+
+      const imgType = document.createElement("label");
+      imgType.textContent = "Label: ";
+      imgCon.appendChild(imgType);
+
+      const inputImgType = document.createElement("input");
+      inputImgType.type = "text";
+      inputImgType.name = "image_label";
+      inputImgType.id = "inputImg_type";
+      imgCon.appendChild(inputImgType);
+
+      newImg.appendChild(imgCon);
+
+      // Attach event listeners and perform necessary actions...
+      newPrev.addEventListener("click", function() {
+        this.classList.toggle("active");
+        var content = this.nextElementSibling;
+        if (content.style.display === "block") {
+          content.style.display = "none";
+        } else {
+          content.style.display = "block";
+        }
+      });
+
+      event.target.appendChild(newImg);
+
+      // Rest of the code...
+    }
+    else {
+      event.target.appendChild(element);
+    }
+  }
+
+  function updateText(elementId) {
+    var inputText = document.getElementById("input_name_" + elementId).value;
+    var paragraph = document.getElementById("p1_" + elementId);
+    paragraph.textContent = inputText;
+  }
+
+  function deleteElement(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.remove();
+    }
+  }
+
+  function displayImage(event, imgId) {
+    var input = document.getElementById("input_img_" + imgId);
+    var reader = new FileReader();
+
+    reader.onload = function() {
+      var image = document.getElementById("img_" + imgId);
+      image.src = reader.result;
+    };
+
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  function deleteImg(imgId) {
+  const element = document.getElementById(imgId);
+  //const deleteButton = document.getElementById("delButton_" + imgId);
+
+  /*if (element && deleteButton) {
+    element.parentNode.remove();
+    deleteButton.style.display = "none";
+  }*/
+  if (element) {
+      element.remove();
+    }
+}
+
+
+  // Drag over event handler
+  function dragOver(event) {
+    event.preventDefault();
+  }
+
+  // Add dragstart and dragover event listeners to form elements
+  const formElements = document.querySelectorAll(".form-element");
+  formElements.forEach(function(element) {
+    element.addEventListener("dragstart", dragStart);
+  });
+
+  const dropRegion = document.getElementById("drop-region");
+  dropRegion.addEventListener("dragover", dragOver);
+  dropRegion.addEventListener("drop", drop);
+
+  const position = { x: 0, y: 0 }
+
+  
+  function dragMoveListener (event) {
+    var target = event.target,
+        // keep the dragged position in the data-x/data-y attributes
+        x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+        y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+    // translate the element
+    target.style.webkitTransform =
+    target.style.transform =
+      'translate(' + x + 'px, ' + y + 'px)';
+
+    // update the posiion attributes
+    target.setAttribute('data-x', x);
+    target.setAttribute('data-y', y);
+  }
+  
+  interact('.badge_class').draggable({
+    inertia: true,
+      modifiers: [
+        interact.modifiers.restrictRect({
+          restriction: '.drop-region', //change this
+          endOnly: false
+        })
+      ],
+      autoScroll: true,
+      // dragMoveListener from the dragging demo above
+      listeners: {
+        move: dragMoveListener
+      }
+  });
+
+</script>
+
+</body>
+</html>
